@@ -5,7 +5,6 @@ import (
 	"example/pkg/e"
 	"example/pkg/settings"
 	"example/pkg/util"
-	"fmt"
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
 	"github.com/unknwon/com"
@@ -47,7 +46,7 @@ func GetATag(c *gin.Context) {
 	valid.Min(id, 1, "id").Message("ID必须大于0")
 	code := e.InvalidParams
 	if !valid.HasErrors() {
-		if models.ExistTagById(id) {
+		if models.ExistTagByID(id) {
 			data = models.GetATagByID(id)
 			code = e.SUCCESS
 		} else {
@@ -72,7 +71,7 @@ func AddTag(c *gin.Context) {
 	valid.Required(createdBy, "created_by").Message("创建者不能为空")
 	valid.MaxSize(createdBy, 100, "created_by").Message("最长100个字符")
 	valid.Range(state, 0, 1, "state").Message("状态只能是0或1")
-	fmt.Println(name, state, createdBy)
+
 	code := e.InvalidParams
 	if !valid.HasErrors() {
 		if !models.ExistTagByName(name) {
@@ -109,7 +108,7 @@ func EditTag(c *gin.Context) {
 	code := e.InvalidParams
 	if !valid.HasErrors() {
 		code = e.SUCCESS
-		if models.ExistTagById(id) {
+		if models.ExistTagByID(id) {
 			data := make(map[string]interface{})
 			data["modified_by"] = modifiedBy
 			if name != "" {
@@ -141,7 +140,7 @@ func DeleteTag(c *gin.Context) {
 	code := e.InvalidParams
 	if !valid.HasErrors() {
 		code = e.SUCCESS
-		if models.ExistTagById(id) {
+		if models.ExistTagByID(id) {
 			models.DeleteTag(id)
 		} else {
 			code = e.ErrorNotExistTag

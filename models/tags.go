@@ -48,7 +48,7 @@ func ExistTagByName(name string) bool {
 	return false
 }
 
-func ExistTagById(id int) bool {
+func ExistTagByID(id int) bool {
 	var tag Tag
 	db.Select("id").Where("id = ?", id).First(&tag)
 	if tag.ID > 0 {
