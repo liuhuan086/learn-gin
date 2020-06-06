@@ -39,6 +39,28 @@ func GetTags(c *gin.Context) {
 	})
 }
 
+func GetATag(c *gin.Context) {
+	id := com.StrTo(c.Param("id")).MustInt()
+	var data interface{}
+	valid := validation.Validation{}
+	valid.Required(id, "id").Message("ID不能为空")
+	valid.Min(id, 1, "id").Message("ID必须大于0")
+	code := e.InvalidParams
+	if !valid.HasErrors() {
+		if models.ExistTagById(id) {
+			data = models.GetATagByID(id)
+			code = e.SUCCESS
+		} else {
+			code = e.ErrorNotExistTag
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"code": code,
+		"msg":  e.GetMsg(code),
+		"data": data,
+	})
+}
+
 func AddTag(c *gin.Context) {
 	name := c.Query("name")
 	state := com.StrTo(c.DefaultQuery("state", "0")).MustInt()
