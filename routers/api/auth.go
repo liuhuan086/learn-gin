@@ -3,6 +3,7 @@ package api
 import (
 	"example/models"
 	"example/pkg/e"
+	"example/pkg/logging"
 	"example/pkg/util"
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
@@ -25,30 +26,31 @@ func GetAuth(c *gin.Context) {
 
 	data := make(map[string]interface{})
 	code := e.InvalidParams
-	if ok {
-		isExist := models.CheckAuth(username, password)
-		if isExist {
-			token, err := util.GenerateToken(username, password)
-			if err != nil {
-				code = e.ErrorAuthToken
-			} else {
-				data["token"] = token
-
-				code = e.SUCCESS
-			}
-
-		} else {
-			code = e.ErrorAuth
-		}
-	} else {
+	if !ok {
 		for _, err := range valid.Errors {
 			c.JSON(http.StatusOK, gin.H{
 				"code": code,
-				"msg":  "参数：" + err.Key + "错误， " + err.Message,
+				"msg":  err.Key + " " + err.Message,
 				"data": make(map[string]string),
 			})
-			return
+			logging.Info(err.Key, err.Message)
 		}
+		return
+	}
+
+	isExist := models.CheckAuth(username, password)
+
+	if isExist {
+		token, err := util.GenerateToken(username, password)
+		if err != nil {
+			code = e.ErrorAuthToken
+		} else {
+			data["token"] = token
+			code = e.SUCCESS
+		}
+
+	} else {
+		code = e.ErrorAuth
 	}
 
 	c.JSON(http.StatusOK, gin.H{
