@@ -3,6 +3,7 @@ package v1
 import (
 	"example/models"
 	"example/pkg/e"
+	"example/pkg/logging"
 	"example/pkg/settings"
 	"example/pkg/util"
 	"github.com/astaxie/beego/validation"
@@ -28,6 +29,7 @@ func GetAnArticle(c *gin.Context) {
 				"msg":  "参数：" + err.Key + "错误， " + err.Message,
 				"data": make(map[string]string),
 			})
+			logging.Info(err.Key, err.Message)
 			return
 		}
 	}
@@ -56,9 +58,11 @@ func GetArticles(c *gin.Context) {
 		for _, err := range valid.Errors {
 			c.JSON(http.StatusOK, gin.H{
 				"code": code,
-				"msg":  "参数：" + err.Key + "错误， " + err.Message,
+				"msg":  err.Key + " " + err.Message,
 				"data": make(map[string]string),
 			})
+
+			logging.Info(err.Key, err.Message)
 			return
 		}
 	}
@@ -81,8 +85,11 @@ func AddAnArticle(c *gin.Context) {
 	content := c.Query("content")
 	createdBy := c.Query("created_by")
 	state := com.StrTo(c.Query("state")).MustInt()
+	//token := c.Query("token")
 
 	valid := validation.Validation{}
+
+	//valid.Required(token, "token").Message("请先登陆")
 	valid.Min(tagId, 1, "tag_id").Message("必须大于0")
 	valid.Required(title, "title").Message("不能为空")
 	valid.Required(desc, "desc").Message("不能为空")
@@ -92,15 +99,19 @@ func AddAnArticle(c *gin.Context) {
 	valid.Range(state, 0, 1, "state").Message("只能为0或1")
 
 	code := e.InvalidParams
+
 	if valid.HasErrors() {
 		for _, err := range valid.Errors {
+			logging.Info(err.Key, err.Message)
+
 			c.JSON(http.StatusOK, gin.H{
 				"code": code,
-				"msg":  "参数：" + err.Key + "错误， " + err.Message,
+				"msg":  err.Key + " " + err.Message,
 				"data": make(map[string]string),
 			})
-			return
+
 		}
+		return
 	}
 
 	if models.ExistArticleByTitle(title) {
@@ -175,11 +186,12 @@ func EditAnArticle(c *gin.Context) {
 		for _, err := range valid.Errors {
 			c.JSON(http.StatusOK, gin.H{
 				"code": code,
-				"msg":  "参数:" + err.Key + "错误，" + err.Message,
+				"msg":  err.Key + " " + err.Message,
 				"data": make(map[string]string),
 			})
-			return
+			logging.Info(err.Key, err.Message)
 		}
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
